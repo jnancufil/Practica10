@@ -1,0 +1,272 @@
+//********************EJERCICIO8
+
+using System;
+using System.Collections.Generic; 
+using System.Threading.Tasks;
+
+namespace ejercicio8
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            List<Task> tareas = new List<Task>();
+            for (int a = 1; a <= 3; a++)
+                {
+                    for (int b = a + 2; b <= a + 4; b++)
+                    {
+                        tareas.Add(Task.Factory.StartNew((p)=>{
+                            int[] vector = p as int[];
+                            Sumatoria(vector[0], vector[1]);
+                            }, new int[]{a,b}));
+                    }
+                }
+            Task.WaitAll(tareas.ToArray());
+            Console.WriteLine("Hello World!");
+            Console.ReadLine(); 
+        }
+        static Random random = new Random();
+        static void Sumatoria (int a, int b){
+	        System.Threading.Thread.Sleep(random.Next(1000));
+	        int suma =0; 
+	        for (int i= a; i <= b; i++){
+		        suma += i;
+	        }
+	        Console.WriteLine($"\n suma desde {a} hasta {b} = {suma}"); 
+        }
+    }
+}
+
+//*********************EJERCICIO9
+
+using System;
+using System.Collections.Generic; 
+using System.Threading.Tasks;
+
+
+namespace ejercicio9
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+           Console.WriteLine("Inciso A ");
+           incisoA();
+           Console.WriteLine("Inciso B "); 
+           incisoB();
+        
+
+           // Console.WriteLine("Hello World!");
+            Console.ReadLine(); 
+        }
+        static int Sumatoria(int n)
+        {
+            int suma = 0;
+            for (int i = 1; i <= n; i++)
+            {
+                suma += i;
+            }
+        return suma;
+        }
+        static void incisoA(){
+            List<Task<int>> tareas = new List<Task<int>>();
+            for (int n = 1; n <= 10; n++)
+                    {
+                        tareas.Add (new Task<int>((o) => Sumatoria((int)o), n));
+                        tareas[n-1].Start();  
+                    }
+                
+       
+            for (int i = 0; i < tareas.Count; i ++){
+                Console.WriteLine(tareas[i].Result); 
+            }
+          
+        }
+        static void incisoB(){
+            List<Task<int>> tareas = new List<Task<int>>();
+            for (int n = 1; n <= 10; n++)
+                    {
+                        tareas.Add (Task<int>.Factory.StartNew((o) => Sumatoria((int)o), n)); 
+                         
+                    }
+               for (int i = 0; i < tareas.Count; i ++){
+                Console.WriteLine(tareas[i].Result); 
+            }
+        }
+    }
+    
+}
+
+//*************************EJERCICIO13
+
+using System;
+using System.Collections.Generic; 
+using System.Threading.Tasks;
+using System.IO; 
+
+namespace ejercicio13
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine ("Ingresar nombre de texto: "); 
+            string txt = Console.ReadLine(); 
+            Task<string> t2 = ObtenerContenidoTextoAsync(txt); 
+            t2.Wait(); 
+            Console.WriteLine(t2.Result); 
+
+            //Console.WriteLine("Hello World!");
+            Console.ReadLine(); 
+        }
+        static async Task<string> ObtenerContenidoTextoAsync(string unTexto){
+            string texto = ""; 
+            Task t = new Task(()=> texto = devolverTexto(unTexto));
+            t.Start();
+           await t; 
+            return texto;  
+        }
+
+        static string devolverTexto(string unNombreTxt){
+            StreamReader sr = null; 
+            string texto = ""; 
+            try{
+                sr = new StreamReader(unNombreTxt);
+                while(! sr.EndOfStream)
+                    texto += sr.ReadLine()+"\n"; 
+            }
+            catch (Exception e){
+                Console.WriteLine(e.Message); 
+            }
+            finally {
+                sr.Dispose();
+            }
+            return texto; 
+        }
+    }
+}
+
+//**************************************EJERCICIO14
+
+using System;
+using System.Collections.Generic; 
+using System.Threading.Tasks;
+using System.IO; 
+
+namespace ejercicio13
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine ("Ingresar nombre de texto: "); 
+            string txt = Console.ReadLine(); 
+           Task<int> t2 = CantidadDePalabrasAsync(txt); 
+            //t2.Wait(); 
+           Console.WriteLine("Cantidad de palabras: "+t2.Result ); 
+
+            //Console.WriteLine("Hello World!");
+            Console.ReadLine(); 
+        }
+        static async Task<int> CantidadDePalabrasAsync(string unTexto){
+            char[] delimiterChars = { ' ', ',', '.', ':', '(' , ')'};
+           // string texto = ""; 
+            Task<string> t = new Task<string>(()=>  devolverTexto(unTexto));
+            t.Start();
+           await t; 
+            return t.Result.Split(delimiterChars).Length;  
+        }
+
+        static string devolverTexto(string unNombreTxt){
+            StreamReader sr = null; 
+            string texto = ""; 
+            try{ 
+                sr = new StreamReader(unNombreTxt);
+                while(! sr.EndOfStream)
+                    texto += sr.ReadLine(); 
+            }
+            catch (Exception e){
+                Console.WriteLine(e.Message); 
+            }
+            finally {
+                sr.Dispose();
+            }
+            return texto; 
+        }
+    }
+}
+
+//***********************EJERCICIO15
+using System;
+using System.Collections.Generic; 
+using System.Threading.Tasks;
+using System.IO; 
+
+namespace ejercicio13
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine ("Ingresar nombre de los textos: "); 
+            //string txt = Console.ReadLine(); 
+            string [] losTextos = {"ejemploJuli.txt", "ejemplo2.txt"}; 
+            try{
+                Task<int []> tarea = hacerTrabajoAsync(losTextos); 
+               
+                Task.WhenAll(tarea).Wait();
+             
+               
+                foreach (var elem in tarea.Result)
+                    Console.WriteLine(elem); 
+                
+
+               // Console.WriteLine("Hello World!");
+                Console.ReadLine(); 
+            }
+            catch (Exception e){
+                Console.WriteLine(e.Message); 
+            }; 
+           
+        }
+        static async Task<int[]> hacerTrabajoAsync(string [] textos){
+            int[] unVector = new int[textos.Length]; 
+            List<Task<int>> L = new List<Task<int>>(); 
+            for (int i = 0; i < textos.Length; i++){
+               L.Add(CantidadDePalabrasAsync(textos[i]));
+             
+            }
+            await Task.WhenAll(L.ToArray()); 
+            int j = 0; 
+            foreach (var elem in L){
+                unVector[j] = elem.Result; 
+            }
+            return unVector ; 
+        }
+        static async Task<int> CantidadDePalabrasAsync(string unTexto){
+            char[] delimiterChars = { ' ', ',', '.', ':', '(' , ')'};
+           // string texto = ""; 
+            Task<string> t = new Task<string>(()=>  devolverTexto(unTexto));
+            t.Start();
+           await t; 
+            return t.Result.Split(delimiterChars).Length;  
+        }
+
+        static string devolverTexto(string unNombreTxt){
+            StreamReader sr = null; 
+            string texto = ""; 
+            try{ 
+                sr = new StreamReader(unNombreTxt);
+                while(! sr.EndOfStream)
+                    texto += sr.ReadLine(); 
+            }
+            catch (Exception e){
+                Console.WriteLine(e.Message); 
+            }
+            finally {
+                sr.Dispose();
+            }
+            return texto; 
+        }
+    }
+}
